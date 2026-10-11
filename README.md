@@ -144,12 +144,6 @@ held-out flag rate is 0.53%, in line with 0.49% in training. Ranking quality is 
 multivariate model is clearly ahead (AUC-ROC 0.968 against 0.862), and it is the only detector
 that notices volume-only events.
 
-## Report
-
-`report/main.tex` is the IEEE-format case-study report (`IEEEtran`, two-column). Its figures are in
-`report/figures/`. Compile it with `pdflatex main.tex` from inside `report/`, or upload the folder to
-Overleaf and set `main.tex` as the main document.
-
 ## Limitations
 
 - One week of one-minute bars is modest in volume. The architecture, not the data size, is what the
