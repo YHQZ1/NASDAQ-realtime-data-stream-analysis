@@ -12,3 +12,11 @@ metastore_db/
 spark-warehouse/
 derby.log
 .DS_Store
+
+report/*.aux
+report/*.log
+report/*.out
+report/*.xdv
+report/*.toc
+report/*.bbl
+report/*.blg

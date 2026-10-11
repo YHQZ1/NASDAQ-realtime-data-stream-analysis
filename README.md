@@ -125,7 +125,7 @@ Measured on a 16 GB laptop, Spark in local mode, containers on the same machine.
 | 5-minute candles produced | 27,249 |
 | Sliding volatility windows | 140,550 |
 | Producer throughput (unthrottled) | about 95,000 messages/s |
-| End-to-end latency at 600x replay | median 1.03 s, p95 1.93 s, max 2.39 s |
+| Produce-to-process latency at 600x replay | median 1.03 s, p95 1.93 s, max 2.39 s |
 | Spark throughput per query (live) | 1.0k-1.6k rows/s average, 1.7k-3.6k peak |
 | Backlog drain (all four queries) | 135,028 rows in about 40 s including Spark start-up |
 
@@ -137,10 +137,18 @@ price shocks (3 to 12 standard deviations), volume surges (3x to 10x) or both.
 | MLlib KMeans | 0.39 | 0.69 | 0.50 | 0.968 | 0.630 | 0.12 |
 | Return z-score | 0.58 | 0.64 | 0.61 | 0.862 | 0.620 | 0.00 |
 
-At the fixed thresholds the z-score rule has the better F1, because the held-out session was more
-volatile than the training days and the KMeans threshold, learned on the training distribution,
-flags more clean bars. Ranking quality is where the multivariate model is clearly ahead (AUC-ROC
-0.968 against 0.862), and it is the only detector that notices volume-only events.
+At the fixed thresholds the z-score rule has the better F1. The held-out session contains a lasting
+level change in one stock (TMUS gapped down about 9%): 116 of the session's 215 KMeans flags are
+that symbol, because the static baseline keeps describing the old regime. Excluding TMUS the
+held-out flag rate is 0.53%, in line with 0.49% in training. Ranking quality is where the
+multivariate model is clearly ahead (AUC-ROC 0.968 against 0.862), and it is the only detector
+that notices volume-only events.
+
+## Report
+
+`report/main.tex` is the IEEE-format case-study report (`IEEEtran`, two-column). Its figures are in
+`report/figures/`. Compile it with `pdflatex main.tex` from inside `report/`, or upload the folder to
+Overleaf and set `main.tex` as the main document.
 
 ## Limitations
 
@@ -148,5 +156,6 @@ flags more clean bars. Ranking quality is where the multivariate model is clearl
   project demonstrates, and the producer's speed multiplier is used to stress it.
 - The replay is historical, so latency figures describe the pipeline and not a live exchange feed.
 - The evaluation uses injected anomalies because real market anomalies are unlabelled.
+- The anomaly baseline is static, so a lasting level change keeps raising flags until the model is retrained.
 - Spark runs in local mode on a single machine; the same code runs on a cluster by changing the
   master and the Kafka and JDBC endpoints.
