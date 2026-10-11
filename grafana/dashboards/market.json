@@ -13,7 +13,7 @@
   "version": 1,
   "refresh": "5s",
   "time": {
-    "from": "now-10d",
+    "from": "now-3d",
     "to": "now"
   },
   "style": "dark",
@@ -49,7 +49,7 @@
       "id": 1,
       "type": "stat",
       "title": "Bars processed",
-      "description": "One-minute OHLCV bars that passed through Kafka and Spark in the selected range.",
+      "description": "Total one-minute OHLCV bars that have passed through Kafka and Spark into PostgreSQL.",
       "datasource": {
         "type": "grafana-postgresql-datasource",
         "uid": "postgres-market"
@@ -70,7 +70,7 @@
           "editorMode": "code",
           "format": "table",
           "rawQuery": true,
-          "rawSql": "SELECT count(*) AS bars FROM raw_bars WHERE $__timeFilter(bar_time)"
+          "rawSql": "SELECT count(*) AS bars FROM raw_bars"
         }
       ],
       "fieldConfig": {
@@ -131,7 +131,7 @@
           "editorMode": "code",
           "format": "table",
           "rawQuery": true,
-          "rawSql": "SELECT count(DISTINCT symbol) AS symbols FROM raw_bars WHERE $__timeFilter(bar_time)"
+          "rawSql": "SELECT count(DISTINCT symbol) AS symbols FROM raw_bars"
         }
       ],
       "fieldConfig": {
@@ -192,7 +192,7 @@
           "editorMode": "code",
           "format": "table",
           "rawQuery": true,
-          "rawSql": "SELECT count(*) AS anomalies FROM anomaly_scores WHERE kmeans_anomaly AND $__timeFilter(bar_time)"
+          "rawSql": "SELECT count(*) AS anomalies FROM anomaly_scores WHERE kmeans_anomaly"
         }
       ],
       "fieldConfig": {
@@ -386,7 +386,9 @@
             "mode": "palette-classic"
           },
           "custom": {
-            "lineWidth": 1
+            "lineWidth": 1,
+            "spanNulls": false,
+            "insertNulls": 3600000
           }
         },
         "overrides": [
@@ -529,6 +531,8 @@
         "defaults": {
           "unit": "none",
           "decimals": 1,
+          "min": 0,
+          "max": 15,
           "color": {
             "mode": "continuous-blues"
           },
@@ -600,7 +604,8 @@
             "lineInterpolation": "linear",
             "fillOpacity": 8,
             "showPoints": "never",
-            "spanNulls": true,
+            "spanNulls": false,
+            "insertNulls": 3600000,
             "axisBorderShow": false,
             "gradientMode": "none"
           }
@@ -648,7 +653,7 @@
       "gridPos": {
         "x": 0,
         "y": 23,
-        "w": 14,
+        "w": 12,
         "h": 9
       },
       "targets": [
@@ -698,7 +703,8 @@
             "lineInterpolation": "linear",
             "fillOpacity": 0,
             "showPoints": "never",
-            "spanNulls": true,
+            "spanNulls": false,
+            "insertNulls": 3600000,
             "axisBorderShow": false,
             "gradientMode": "none"
           }
@@ -806,9 +812,9 @@
         "uid": "postgres-market"
       },
       "gridPos": {
-        "x": 14,
+        "x": 12,
         "y": 23,
-        "w": 10,
+        "w": 12,
         "h": 9
       },
       "targets": [
@@ -821,7 +827,7 @@
           "editorMode": "code",
           "format": "table",
           "rawQuery": true,
-          "rawSql": "SELECT bar_time AS \"time\", symbol, close, round((bar_return * 10000)::numeric, 1) AS \"return (bps)\", round(z_volume::numeric, 1) AS \"volume z\", round(kmeans_score::numeric, 2) AS score, CASE WHEN zscore_anomaly THEN 'yes' ELSE 'no' END AS \"z-score also\" FROM anomaly_scores WHERE kmeans_anomaly AND $__timeFilter(bar_time) ORDER BY bar_time DESC LIMIT 100"
+          "rawSql": "SELECT to_char(bar_time, 'MM-DD HH24:MI') AS \"bar (UTC)\", symbol, round((bar_return * 10000)::numeric, 1) AS \"return (bps)\", round(z_volume::numeric, 1) AS \"volume z\", round(kmeans_score::numeric, 2) AS score, CASE WHEN zscore_anomaly THEN 'yes' ELSE 'no' END AS \"z-score also\" FROM anomaly_scores WHERE kmeans_anomaly AND $__timeFilter(bar_time) ORDER BY bar_time DESC LIMIT 100"
         }
       ],
       "fieldConfig": {
@@ -840,7 +846,7 @@
     {
       "id": 12,
       "type": "timeseries",
-      "title": "Spark processed rows per second, by query",
+      "title": "Spark processed rows per second, by query (last 30 min)",
       "description": "Throughput reported by Structured Streaming progress events for each of the four concurrent queries reading the same Kafka topic.",
       "datasource": {
         "type": "grafana-postgresql-datasource",
@@ -852,6 +858,7 @@
         "w": 12,
         "h": 7
       },
+      "timeFrom": "30m",
       "targets": [
         {
           "refId": "A",
@@ -877,7 +884,8 @@
             "lineInterpolation": "linear",
             "fillOpacity": 8,
             "showPoints": "never",
-            "spanNulls": true,
+            "spanNulls": false,
+            "insertNulls": 3600000,
             "axisBorderShow": false,
             "gradientMode": "none"
           }
@@ -961,7 +969,7 @@
     {
       "id": 13,
       "type": "timeseries",
-      "title": "End-to-end latency (s)",
+      "title": "End-to-end latency (last 30 min)",
       "description": "Average seconds from Kafka message creation to the row being committed to PostgreSQL, bucketed by processing time.",
       "datasource": {
         "type": "grafana-postgresql-datasource",
@@ -973,6 +981,7 @@
         "w": 12,
         "h": 7
       },
+      "timeFrom": "30m",
       "targets": [
         {
           "refId": "A",
@@ -998,7 +1007,8 @@
             "lineInterpolation": "linear",
             "fillOpacity": 8,
             "showPoints": "never",
-            "spanNulls": true,
+            "spanNulls": false,
+            "insertNulls": 3600000,
             "axisBorderShow": false,
             "gradientMode": "none"
           }
