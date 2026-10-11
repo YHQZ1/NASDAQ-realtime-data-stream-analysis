@@ -3,7 +3,7 @@ RUFF := .venv/bin/ruff
 SPEED ?= 60
 DEMO_SPEED ?= 600
 
-.PHONY: venv up down download train evaluate stream produce demo counts reset format lint
+.PHONY: venv up down download train evaluate stream produce topic demo counts reset format lint
 
 venv:
 	python3 -m venv .venv
@@ -30,6 +30,9 @@ stream:
 
 produce:
 	$(PYTHON) -m nasdaq_stream.ingest.producer --speed $(SPEED)
+
+topic:
+	$(PYTHON) -m nasdaq_stream.ingest.producer --max-minutes 0 --speed 0
 
 demo:
 	$(PYTHON) -m nasdaq_stream.demo --speed $(DEMO_SPEED)
