@@ -63,13 +63,20 @@ def main() -> None:
         for name, stream in streams.items()
     ]
     LOGGER.info("running queries: %s", ", ".join(query.name for query in queries))
-    if args.drain:
-        for query in queries:
-            query.awaitTermination()
+    try:
+        if args.drain:
+            for query in queries:
+                query.awaitTermination()
+        else:
+            spark.streams.awaitAnyTermination()
+    except KeyboardInterrupt:
+        LOGGER.info("interrupt received; stopping queries")
+    finally:
         spark.streams.removeListener(listener)
+        for query in queries:
+            if query.isActive:
+                query.stop()
         spark.stop()
-    else:
-        spark.streams.awaitAnyTermination()
 
 
 if __name__ == "__main__":

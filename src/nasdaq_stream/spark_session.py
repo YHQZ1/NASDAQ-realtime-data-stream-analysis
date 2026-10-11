@@ -20,7 +20,7 @@ def build_session(
 ) -> SparkSession:
     builder = (
         SparkSession.builder.appName(app_name)
-        .master("local[*]")
+        .master("local[*,4]")
         .config("spark.driver.memory", driver_memory)
         .config("spark.driver.extraJavaOptions", "-Duser.timezone=UTC")
         .config("spark.hadoop.fs.defaultFS", "file:///")

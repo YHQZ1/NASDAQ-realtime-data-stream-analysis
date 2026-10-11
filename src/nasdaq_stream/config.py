@@ -26,9 +26,8 @@ class PostgresConfig:
 
     @property
     def jdbc_url(self) -> str:
-        return (
-            f"jdbc:postgresql://{self.host}:{self.port}/{self.database}?reWriteBatchedInserts=true"
-        )
+        options = "reWriteBatchedInserts=true&sslmode=disable&connectTimeout=30&socketTimeout=120"
+        return f"jdbc:postgresql://{self.host}:{self.port}/{self.database}?{options}"
 
 
 @dataclass(frozen=True)
