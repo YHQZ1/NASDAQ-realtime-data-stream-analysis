@@ -293,8 +293,8 @@
     {
       "id": 5,
       "type": "stat",
-      "title": "Median latency",
-      "description": "Median seconds between a message being produced to Kafka and its row being written to PostgreSQL, over the latest 5,000 bars.",
+      "title": "Median produce-to-process latency",
+      "description": "Median seconds between a message being produced to Kafka and the start of the Spark micro-batch that processed it, over the latest 5,000 bars.",
       "datasource": {
         "type": "grafana-postgresql-datasource",
         "uid": "postgres-market"
@@ -969,8 +969,8 @@
     {
       "id": 13,
       "type": "timeseries",
-      "title": "End-to-end latency (last 30 min)",
-      "description": "Average seconds from Kafka message creation to the row being committed to PostgreSQL, bucketed by processing time.",
+      "title": "Produce-to-process latency (last 30 min)",
+      "description": "Average seconds from Kafka message creation to the start of the Spark micro-batch that processed it, bucketed by processing time.",
       "datasource": {
         "type": "grafana-postgresql-datasource",
         "uid": "postgres-market"
