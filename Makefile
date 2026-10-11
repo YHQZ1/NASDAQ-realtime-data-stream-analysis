@@ -1,8 +1,9 @@
 PYTHON := .venv/bin/python
 RUFF := .venv/bin/ruff
 SPEED ?= 60
+DEMO_SPEED ?= 600
 
-.PHONY: venv up down download train evaluate stream produce reset format lint
+.PHONY: venv up down download train evaluate stream produce demo counts reset format lint
 
 venv:
 	python3 -m venv .venv
@@ -29,6 +30,12 @@ stream:
 
 produce:
 	$(PYTHON) -m nasdaq_stream.ingest.producer --speed $(SPEED)
+
+demo:
+	$(PYTHON) -m nasdaq_stream.demo --speed $(DEMO_SPEED)
+
+counts:
+	docker compose exec -T postgres psql -U market -d market -c "SELECT 'raw_bars' AS table_name, count(*) FROM raw_bars UNION ALL SELECT 'agg_5m', count(*) FROM agg_5m UNION ALL SELECT 'volatility', count(*) FROM volatility UNION ALL SELECT 'anomaly_scores', count(*) FROM anomaly_scores UNION ALL SELECT 'pipeline_metrics', count(*) FROM pipeline_metrics"
 
 reset:
 	rm -rf checkpoints

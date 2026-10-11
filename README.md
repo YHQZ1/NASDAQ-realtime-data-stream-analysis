@@ -68,6 +68,28 @@ while the stream is running.
 full week in about 4.5 minutes and `0` is unthrottled. Run `make reset` between replays to clear
 checkpoints, tables and the topic.
 
+## Live demo
+
+With the containers up, the data downloaded and the model trained, one command runs the whole
+pipeline end to end:
+
+```bash
+make demo
+```
+
+It checks the prerequisites, resets checkpoints, tables and the topic, starts the Spark job,
+replays the full week at 600x (about 4.5 minutes), prints the row count of every table and stops
+the job. Open the Grafana dashboard while it runs and the panels fill from left to right.
+
+```bash
+make demo DEMO_SPEED=300
+.venv/bin/python -m nasdaq_stream.demo --speed 600 --keep-running
+.venv/bin/python -m nasdaq_stream.demo --max-minutes 60
+```
+
+The second form leaves the job running after the replay so the dashboard can be walked through
+live. The third replays only the first 60 market minutes for a quick check.
+
 ## Project layout
 
 ```
@@ -128,6 +150,7 @@ Measured on a 16 GB laptop, Spark in local mode, containers on the same machine.
 | Produce-to-process latency at 600x replay | median 1.03 s, p95 1.93 s, max 2.39 s |
 | Spark throughput per query (live) | 1.0k-1.6k rows/s average, 1.7k-3.6k peak |
 | Backlog drain (all four queries) | 135,028 rows in about 40 s including Spark start-up |
+| Produce-to-process latency at 900x replay (about 700 msg/s), dashboard closed | median 1.02 s, p95 1.92 s, max 2.38 s |
 
 Anomaly detection was evaluated on a held-out final session with 1% of bars replaced by synthetic
 price shocks (3 to 12 standard deviations), volume surges (3x to 10x) or both.
@@ -149,6 +172,12 @@ that notices volume-only events.
 - One week of one-minute bars is modest in volume. The architecture, not the data size, is what the
   project demonstrates, and the producer's speed multiplier is used to stress it.
 - The replay is historical, so latency figures describe the pipeline and not a live exchange feed.
+- The pipeline, the dashboard, Kafka, PostgreSQL and any recording share one 16 GB machine, and
+  latency is sensitive to host contention. With the host idle the same 900x replay held about 1 s
+  throughout (p95 1.92 s). With a browser refreshing the dashboard, or with the machine deep in swap,
+  one to two minute backlogs appeared with latency up to 51 s before draining. A JDBC connection
+  timeout under that load once killed a query, so task retries and a longer connection timeout were
+  added and the demo now verifies row counts. Close other applications before running the demo.
 - The evaluation uses injected anomalies because real market anomalies are unlabelled.
 - The anomaly baseline is static, so a lasting level change keeps raising flags until the model is retrained.
 - Spark runs in local mode on a single machine; the same code runs on a cluster by changing the
